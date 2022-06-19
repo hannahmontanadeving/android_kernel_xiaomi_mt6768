@@ -57,6 +57,8 @@ endif
     export CONNAC_VER=1_0
     export WIFI_IP_SET=1
     export WIFI_ECO_VER=1
+    export CFG_FM_CHIP_ID=6768
+    export CFG_FM_CHIP=mt6631
 
     # Remove debugging
     export TARGET_BUILD_VARIANT=user
