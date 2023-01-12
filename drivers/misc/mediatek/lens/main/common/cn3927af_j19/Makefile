@@ -15,6 +15,6 @@
 # Makefile for misc devices that really don't fit anywhere else.
 #
 
-obj-$(CONFIG_MTK_LENS_DW9800WAF_SUPPORT) += DW9800WAF.o
+obj-y += CN3927AF_J19.o
 
 
