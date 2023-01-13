@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -52,7 +53,7 @@
 #define EEPROM_I2C_MSG_SIZE_READ 2
 
 #ifndef EEPROM_I2C_READ_MSG_LENGTH_MAX
-#define EEPROM_I2C_READ_MSG_LENGTH_MAX 255
+#define EEPROM_I2C_READ_MSG_LENGTH_MAX 1024
 #endif
 #ifndef EEPROM_I2C_WRITE_MSG_LENGTH_MAX
 #define EEPROM_I2C_WRITE_MSG_LENGTH_MAX 32
