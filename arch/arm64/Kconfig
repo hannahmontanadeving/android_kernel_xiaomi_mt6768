@@ -1300,3 +1300,13 @@ source "arch/arm64/crypto/Kconfig"
 endif
 
 source "lib/Kconfig"
+
+config TARGET_PRODUCT_MERLINCOMMON
+	bool "TARGET PRODUCT MERLINCOMMON"
+	---help---
+	  Enable support for TARGET PRODUCT MERLINCOMMON
+
+config TARGET_PRODUCT_LANCELOTCOMMON
+	bool "TARGET PRODUCT LANCELOTCOMMON"
+	---help---
+	  Enable support for TARGET PRODUCT LANCELOTCOMMON
