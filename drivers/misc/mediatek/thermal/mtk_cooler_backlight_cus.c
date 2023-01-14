@@ -26,149 +26,58 @@
 
 #include "mt-plat/mtk_thermal_monitor.h"
 
+#define BACKLIGHT_COOLER_NR 1
+#define MAX_BACKLIGHT_BRIGHTNESS 255
+
 #define mtk_cooler_backlight_dprintk(fmt, args...)	\
 	pr_notice("thermal/cooler/backlight " fmt, ##args)
 
-#define BACKLIGHT_COOLER_NR 3
 
 static struct thermal_cooling_device
 *cl_backlight_dev[BACKLIGHT_COOLER_NR] = { 0 };
-
-static unsigned int g_cl_backlight_state[BACKLIGHT_COOLER_NR] = { 0 };
-
-/* static unsigned int g_cl_backlight_last_state[BACKLIGHT_COOLER_NR] = {0}; */
 static unsigned int g_cl_id[BACKLIGHT_COOLER_NR];
 static unsigned int g_backlight_level;
-static unsigned int g_backlight_last_level;
 
-
-static void mtk_cl_backlight_set_max_brightness_limit(void)
-{
-	if (g_backlight_last_level != g_backlight_level) {
-		mtk_cooler_backlight_dprintk("set brightness level = %d\n",
-				g_backlight_level);
-
-#ifdef FACTORY_VERSION_ENABLE
-		switch (g_backlight_level) {
-		case 0:
-			setMaxbrightness(255, 0);	/* 100% */
-			break;
-		case 1:
-			setMaxbrightness(178, 1);	/* 70% */
-			break;
-		case 2:
-			setMaxbrightness(102, 1);	/* 40% */
-			break;
-		case 3:
-			setMaxbrightness(25, 1);	/* 10% */
-			break;
-		default:
-			setMaxbrightness(255, 0);
-			break;
-		}
-#else
-		switch (g_backlight_level) {
-		case 0:
-			setMaxbrightness(2047, 0);	/* 100% */
-			break;
-		case 1:
-			setMaxbrightness(1432, 1);	/* 70% */
-			break;
-		case 2:
-			setMaxbrightness(818, 1);	/* 40% */
-			break;
-		case 3:
-			setMaxbrightness(204, 1);	/* 10% */
-			break;
-		default:
-			setMaxbrightness(2047, 0);
-			break;
-		}
-#endif
-	}
-}
-
-	static int mtk_cl_backlight_get_max_state
+static int mtk_cl_backlight_get_max_state
 (struct thermal_cooling_device *cdev, unsigned long *state)
 {
-	*state = 1;
-	/* mtk_cooler_backlight_dprintk
-	 * ("mtk_cl_backlight_get_max_state() %d\n", *state);
-	 */
+	*state = MAX_BACKLIGHT_BRIGHTNESS;
 	return 0;
 }
 
-	static int mtk_cl_backlight_get_cur_state
+static int mtk_cl_backlight_get_cur_state
 (struct thermal_cooling_device *cdev, unsigned long *state)
 {
-	int nCoolerId;
-
-	/* Get Cooler ID */
-	nCoolerId = *((int *)cdev->devdata);
-
-	*state = g_cl_backlight_state[nCoolerId];
-	/* mtk_cooler_backlight_dprintk
-	 * ("mtk_cl_backlight_get_cur_state() %d CoolerID:%d\n",
-	 * state, nCoolerId);
-	 */
+	*state = g_backlight_level;
 	return 0;
 }
 
-	static int mtk_cl_backlight_set_cur_state
+static int mtk_cl_backlight_set_cur_state
 (struct thermal_cooling_device *cdev, unsigned long state)
 {
-	int i;
-	int nCoolerId;		/* /< Backlight Cooler ID */
+	int enable = (state == MAX_BACKLIGHT_BRIGHTNESS) ? 0 : 1;
 
-	/* Get Cooler ID */
-	nCoolerId = *((int *)cdev->devdata);
-
-	/* mtk_cooler_backlight_dprintk
-	 * ("mtk_cl_backlight_set_cur_state() %d CoolerID:%d\n",
-	 * state, nCoolerId);
-	 */
-
-	g_cl_backlight_state[nCoolerId] = state;
-
-	g_backlight_level = 0;
-	for (i = 0; i < BACKLIGHT_COOLER_NR; i++)
-		g_backlight_level += g_cl_backlight_state[i];
-
-	/* Mark for test */
-	/* if(g_backlight_last_level != g_backlight_level) */
-	{
-		/* send uevent to notify current call must be dropped
-		 */
-		/* char event[20] = {0}; */
-		/* char *envp[] = { event, NULL }; */
-		/* sprintf(event, "BACKLIGHT=%d", g_backlight_level);
-		 * ///< BACKLIGHT01=1 ...
-		 */
-		/* kobject_uevent_env
-		 * (&(cl_backlight_dev[nCoolerId]->device.kobj),
-		 * KOBJ_CHANGE, envp);
-		 */
-
-		mtk_cl_backlight_set_max_brightness_limit();
-
-		g_backlight_last_level = g_backlight_level;
-
-		/* mtk_cooler_backlight_dprintk
-		 * ("mtk_cl_backlight_set_cur_state()
-		 * event:%s g_backlight_level:%d\n",
-		 * event, g_backlight_level);
-		 */
-
-	}
-
+	printk("[%s]: --lyd_thmal, set max brightness = %d\n", __func__, state);
+	setMaxbrightness(state, enable);
+	g_backlight_level = state;
+	mtk_cooler_backlight_dprintk("%u\n", g_backlight_level);
 	return 0;
 }
+
+static int mtk_cl_backlight_get_available
+(struct thermal_cooling_device *cdev, char *available)
+{
+	*available = MAX_BACKLIGHT_BRIGHTNESS;
+	return 0;
+}
+
 
 /* bind fan callbacks to fan device */
 static struct thermal_cooling_device_ops mtk_cl_backlight_ops = {
 	.get_max_state = mtk_cl_backlight_get_max_state,
 	.get_cur_state = mtk_cl_backlight_get_cur_state,
 	.set_cur_state = mtk_cl_backlight_set_cur_state,
+	.get_available = mtk_cl_backlight_get_available,
 };
 
 static int mtk_cooler_backlight_register_ltf(void)
@@ -180,7 +89,7 @@ static int mtk_cooler_backlight_register_ltf(void)
 	for (i = 0; i < BACKLIGHT_COOLER_NR; i++) {
 		char temp[20] = { 0 };
 
-		sprintf(temp, "mtk-cl-backlight%02d", i + 1);
+		sprintf(temp, "mtk-cl-backlight");
 		/* /< Cooler Name: mtk-cl-backlight01 */
 
 		g_cl_id[i] = i;
@@ -207,12 +116,12 @@ static void mtk_cooler_backlight_unregister_ltf(void)
 	}
 }
 
-
 static int __init mtk_cooler_backlight_init(void)
 {
 	int err = 0;
 
 	mtk_cooler_backlight_dprintk("init\n");
+	g_backlight_level = MAX_BACKLIGHT_BRIGHTNESS;
 
 	err = mtk_cooler_backlight_register_ltf();
 	if (err)
