@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -671,14 +672,7 @@ void check_cm_mgr_status(unsigned int cluster, unsigned int freq)
 	prev_freq[cluster] = 0;
 #endif /* CONFIG_MTK_CPU_FREQ */
 
-
-	/* if TRIGEAR use B cluster freq */
-#ifdef CM_TRIGEAR
-	clamping_idx = MIN(prev_freq_idx[CM_MGR_B], prev_freq_idx[CM_MGR_BB]);
-	cm_mgr_update_dram_by_cpu_opp(clamping_idx);
-#else
 	cm_mgr_update_dram_by_cpu_opp(prev_freq_idx[CM_MGR_CPU_CLUSTER - 1]);
-#endif
 
 	check_cm_mgr_status_internal();
 }
@@ -733,13 +727,6 @@ int cm_mgr_to_sspm_command(u32 cmd, int val)
 	case IPI_CM_MGR_OPP_VOLT_SET:
 	case IPI_CM_MGR_BCPU_WEIGHT_MAX_SET:
 	case IPI_CM_MGR_BCPU_WEIGHT_MIN_SET:
-#ifdef CM_TRIGEAR
-	/* FALLTHROUGH */
-	case IPI_CM_MGR_BBCPU_WEIGHT_MAX_SET:
-		/* FALLTHROUGH */
-	case IPI_CM_MGR_BBCPU_WEIGHT_MIN_SET:
-		/* FALLTHROUGH */
-#endif
 #ifdef CM_BCPU_MIN_OPP_WEIGHT
 	case IPI_CM_MGR_BCPU_MIN_OPP_WEIGHT_SET:
 		/* FALLTHROUGH */
@@ -1025,12 +1012,6 @@ static int dbg_cm_mgr_proc_show(struct seq_file *m, void *v)
 	seq_printf(m, "cpu_power_bcpu_weight_min %d\n",
 			cpu_power_bcpu_weight_min);
 #endif /* USE_BCPU_WEIGHT */
-#ifdef CM_TRIGEAR
-	seq_printf(m, "cpu_power_bbcpu_weight_max %d\n",
-			cpu_power_bbcpu_weight_max);
-	seq_printf(m, "cpu_power_bbcpu_weight_min %d\n",
-			cpu_power_bbcpu_weight_min);
-#endif
 #ifdef DSU_DVFS_ENABLE
 	seq_printf(m, "dsu_dvfs_debounce_up %d\n",
 			dsu_debounce_up);
@@ -1082,7 +1063,6 @@ static int dbg_cm_mgr_proc_show(struct seq_file *m, void *v)
 	}
 
 #ifdef PER_CPU_STALL_RATIO
-#ifndef USE_CM_POWER_ARGS
 	for (count = 0; count < CM_MGR_MAX; count++) {
 		cpu_power_gain_ptr(0, count, 0);
 
@@ -1132,7 +1112,6 @@ static int dbg_cm_mgr_proc_show(struct seq_file *m, void *v)
 			seq_puts(m, "\n");
 		}
 	}
-#endif /* USE_CM_POWER_ARGS */
 #endif /* PER_CPU_STALL_RATIO */
 
 	seq_puts(m, "_v2f_all\n");
@@ -1495,28 +1474,6 @@ static ssize_t dbg_cm_mgr_proc_write(struct file *file,
 				val_1);
 #endif /* CONFIG_MTK_TINYSYS_SSPM_SUPPORT */
 #endif /* CM_BCPU_MIN_OPP_WEIGHT */
-#ifdef CM_TRIGEAR
-	} else if (!strcmp(cmd, "cpu_power_bbcpu_weight_max")) {
-		if (cpu_power_bbcpu_weight_max < cpu_power_bbcpu_weight_min) {
-			ret = -1;
-		} else {
-			cpu_power_bbcpu_weight_max = val_1;
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(USE_CM_MGR_AT_SSPM)
-			cm_mgr_to_sspm_command(IPI_CM_MGR_BBCPU_WEIGHT_MAX_SET,
-					val_1);
-#endif /* CONFIG_MTK_TINYSYS_SSPM_SUPPORT */
-		}
-	} else if (!strcmp(cmd, "cpu_power_bbcpu_weight_min")) {
-		if (cpu_power_bbcpu_weight_max < cpu_power_bbcpu_weight_min) {
-			ret = -1;
-		} else {
-			cpu_power_bbcpu_weight_min = val_1;
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(USE_CM_MGR_AT_SSPM)
-			cm_mgr_to_sspm_command(IPI_CM_MGR_BBCPU_WEIGHT_MIN_SET,
-					val_1);
-#endif /* CONFIG_MTK_TINYSYS_SSPM_SUPPORT */
-		}
-#endif /* CM_TRIGEAR */
 #ifdef DSU_DVFS_ENABLE
 	} else if (!strcmp(cmd, "dsu_dvfs_debounce_up")) {
 		dsu_debounce_up = val_1;
@@ -1736,13 +1693,6 @@ int __init cm_mgr_module_init(void)
 	cm_mgr_to_sspm_command(IPI_CM_MGR_BCPU_WEIGHT_MIN_SET,
 			cpu_power_bcpu_weight_min);
 #endif /* USE_BCPU_WEIGHT */
-#ifdef CM_TRIGEAR
-	cm_mgr_to_sspm_command(IPI_CM_MGR_BBCPU_WEIGHT_MAX_SET,
-			cpu_power_bbcpu_weight_max);
-
-	cm_mgr_to_sspm_command(IPI_CM_MGR_BBCPU_WEIGHT_MIN_SET,
-			cpu_power_bbcpu_weight_min);
-#endif
 #ifdef DSU_DVFS_ENABLE
 	cm_mgr_to_sspm_command(IPI_CM_MGR_DSU_DEBOUNCE_UP_SET,
 			dsu_debounce_up);
