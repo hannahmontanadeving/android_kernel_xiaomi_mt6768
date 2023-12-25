@@ -3,6 +3,7 @@
 // mt6358.c  --  mt6358 ALSA SoC audio codec driver
 //
 // Copyright (c) 2018 MediaTek Inc.
+// Copyright (C) 2021 XiaoMi, Inc.
 // Author: KaiChieh Chuang <kaichieh.chuang@mediatek.com>
 
 #include <linux/platform_device.h>
@@ -7091,7 +7092,9 @@ static int mt6358_codec_init_reg(struct mt6358_priv *priv)
 			   0x1 << RG_EINTCOMPVTH_SFT);
 
 	/* gpio miso driving set to 4mA */
-	regmap_write(priv->regmap, MT6358_DRV_CON3, 0x8888);
+	/* regmap_write(priv->regmap, MT6358_DRV_CON3, 0x8888);*/
+	/* gpio miso driving set to 8mA */
+	regmap_write(priv->regmap, MT6358_DRV_CON3, 0xaaaa);
 
 	/* set gpio */
 	playback_gpio_reset(priv);
