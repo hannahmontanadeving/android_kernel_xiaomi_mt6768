@@ -1,6 +1,7 @@
 config MTK_CHARGER
 	bool "MediaTek Charging Driver"
 	depends on MEDIATEK_SOLUTION
+	default n
 	help
 	  Say yes here to enable MediaTek charging driver.
 	  This driver contains charging control flow and
@@ -9,6 +10,7 @@ config MTK_CHARGER
 
 config POWER_EXT
 	bool "MediaTek Power Ext"
+	default n
 	help
 	  Check this if the device is not powered by battery.
 	  For example, if the device is powered by AC adapter.
@@ -17,6 +19,7 @@ config POWER_EXT
 
 config MTK_SWCHR_SUPPORT
 	bool "MediaTek switch charger"
+	default n
 	depends on MTK_CHARGER
 	help
 	  This is to enable switching charger control flow.
@@ -26,6 +29,7 @@ config MTK_SWCHR_SUPPORT
 
 config MTK_KERNEL_POWER_OFF_CHARGING
 	bool "MTK kernel power off charging"
+	default n
 	depends on MTK_CHARGER
 	help
 	  yes : support KPOC feature, power off charging would running by
@@ -35,6 +39,7 @@ config MTK_KERNEL_POWER_OFF_CHARGING
 
 config MTK_PUMP_EXPRESS_PLUS_SUPPORT
 	bool "MediaTek PUMP EXPRESS PLUS"
+	default n
 	depends on MTK_CHARGER
 	help
 	  Fast charging technology using switch charger and current pattern
@@ -44,6 +49,7 @@ config MTK_PUMP_EXPRESS_PLUS_SUPPORT
 
 config MTK_PUMP_EXPRESS_PLUS_20_SUPPORT
 	bool "MediaTek PUMP EXPRESS PLUS 2.0"
+	default n
 	depends on MTK_CHARGER
 	help
 	  Fast charging technology using switch charger and current pattern
@@ -65,6 +71,7 @@ config MTK_PUMP_EXPRESS_50_SUPPORT
 
 config MTK_DUAL_CHARGER_SUPPORT
 	bool "MediaTek dual charger support"
+	default n
 	depends on MTK_CHARGER
 	help
 	  Use two charging ICs (master and slave) to charge the system.
@@ -74,6 +81,7 @@ config MTK_DUAL_CHARGER_SUPPORT
 
 config SWCHR_POWER_PATH
 	bool "External charger IC supports powerpath"
+	default n
 	depends on MTK_CHARGER
 	help
 	  Set Yes if the external charger IC
@@ -110,6 +118,7 @@ config CHARGER_MT6362
 
 config CHARGER_RT9465
 	bool "Charger Driver for Richtek RT9465 Charger IC"
+	default n
 	depends on MTK_CHARGER
 	help
 	  Say Yes to enable Richtek RT9465 driver.
@@ -119,12 +128,23 @@ config CHARGER_RT9465
 
 config CHARGER_RT9458
 	bool "Charger Driver for Richtek RT9458 Charger IC"
+	default n
 	depends on MTK_SWCHR_SUPPORT
 	help
 	  Say Y to enable
 	  Richtek RT9458 driver.
 	  It depends on
 	  the config MTK_SWCHR_SUPPORT.
+
+config SMB1351_USB_CHARGER
+	bool "Charger Driver for SMB1351  Charger IC"
+	default n
+	depends on MTK_CHARGER
+	help
+	  Say Yes to enable SMB1351 driver.
+          It is mainly used as slave IC for dual charger
+          application.
+          It depends on config MTK_CHARGER.
 
 config CHARGER_RT9466
 	bool "Charger Driver for Richtek RT9466 Charger IC"
@@ -138,6 +158,7 @@ config CHARGER_RT9466
 
 config CHARGER_RT9467
 	bool "Charger Driver for Richtek RT9467 Charger IC"
+	default n
 	depends on MTK_CHARGER
 	help
 	  Say Yes to enable Richtek RT9467 driver.
@@ -147,6 +168,7 @@ config CHARGER_RT9467
 
 config CHARGER_RT9471
 	bool "Charger Driver for Richtek RT9471 Charger IC"
+	default n
 	depends on MTK_CHARGER
 	help
 	  Say Yes to enable Richtek RT9471 charger driver.
@@ -173,6 +195,7 @@ config RT_PROP_CHGALGO
 
 config MTK_CHARGER_UNLIMITED
 	bool "MediaTek Charger Unlimited"
+	default n
 	depends on MTK_CHARGER
 	help
 	  Say Yes to release charging current restrictions.

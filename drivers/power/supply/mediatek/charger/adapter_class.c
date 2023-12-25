@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -187,7 +188,7 @@ struct adapter_device *adapter_device_register(const char *name,
 	adapter_dev->dev.parent = parent;
 	adapter_dev->dev.release = adapter_device_release;
 	adapter_name = kasprintf(GFP_KERNEL, "%s", name);
-	dev_set_name(&adapter_dev->dev, adapter_name);
+	dev_set_name(&adapter_dev->dev, "%s", adapter_name);
 	dev_set_drvdata(&adapter_dev->dev, devdata);
 	kfree(adapter_name);
 
