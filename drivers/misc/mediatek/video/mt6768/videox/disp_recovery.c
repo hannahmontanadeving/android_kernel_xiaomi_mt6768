@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -710,6 +711,8 @@ static int primary_display_check_recovery_worker_kthread(void *data)
 	return 0;
 }
 
+extern int32_t nvt_update_firmware(char *firmware_name);
+
 /* ESD RECOVERY */
 int primary_display_esd_recovery(void)
 {
@@ -772,6 +775,11 @@ int primary_display_esd_recovery(void)
 	/*after dsi_stop, we should enable the dsi basic irq.*/
 	dsi_basic_irq_enable(DISP_MODULE_DSI0, NULL);
 	disp_lcm_suspend(primary_get_lcm());
+	if (primary_get_lcm()->drv->suspend_power) {
+		primary_get_lcm()->drv->suspend_power();
+	} else {
+		printk("[%s]: ESD recovery,lcm suspend power fail!\n", __func__);
+	}
 	DISPCHECK("[POWER]lcm suspend[end]\n");
 
 	mmprofile_log_ex(mmp_r, MMPROFILE_FLAG_PULSE, 0, 7);
@@ -821,6 +829,19 @@ int primary_display_esd_recovery(void)
 		bdg_tx_set_mode(DISP_BDG_DSI0, NULL, get_bdg_tx_mode());
 		bdg_tx_start(DISP_BDG_DSI0, NULL);
 	}
+
+	if (!(strcmp((primary_get_lcm()->drv->name), "nt36672A_fhdp_dsi_vdo_tianma_lcm_drv")))
+		nvt_update_firmware("novatek_ts_fw.bin");
+	else if (!(strcmp((primary_get_lcm()->drv->name), "nt36672A_fhdp_dsi_vdo_tianma_lcm_drv_G6")))
+		nvt_update_firmware("novatek_ts_g6_fw.bin");
+	else if (!(strcmp((primary_get_lcm()->drv->name), "nt36672A_fhdp_dsi_vdo_tianma_j19_lcm_drv")))
+		nvt_update_firmware("nvt_tm_fw.bin");
+	else if (!(strcmp((primary_get_lcm()->drv->name), "nt36672A_fhdp_dsi_vdo_dijing_j19_lcm_drv")))
+		nvt_update_firmware("nvt_dj_fw.bin");
+	else if (!(strcmp((primary_get_lcm()->drv->name), "nt36672D_fhdp_dsi_vdo_dijing_j19_lcm_drv")))
+		nvt_update_firmware("nvt_dj_72d_fw.bin");
+	else if (!(strcmp((primary_get_lcm()->drv->name), "nt36672D_fhdp_dsi_vdo_tianma_lcm_drv")))
+		nvt_update_firmware("novatek_ts_72d_fw.bin");
 
 	DISPDBG("[ESD]start dpmgr path[begin]\n");
 	if (disp_partial_is_support()) {
