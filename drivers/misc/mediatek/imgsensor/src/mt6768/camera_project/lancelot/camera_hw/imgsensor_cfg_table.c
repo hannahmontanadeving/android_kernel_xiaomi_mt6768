@@ -405,32 +405,6 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 	  },
 	 },
 #endif
-#if defined(S5K4H7YX_QTECH_FRONT_MIPI_RAW)
-	{
-	 SENSOR_DRVNAME_S5K4H7YX_QTECH_FRONT_MIPI_RAW,
-	{
-	  {RST, Vol_Low, 1},
-	  {AVDD, Vol_2800, 0},
-	  {DVDD, Vol_1200, 0},
-	  {DOVDD, Vol_1800, 1},
-	  {RST, Vol_High, 2},
-	  {SensorMCLK, Vol_High, 2},
-	  },
-	 },
-#endif
-#if defined(S5K4H7YX_QTECH_ULTRA_MIPI_RAW)
-	{
-	 SENSOR_DRVNAME_S5K4H7YX_QTECH_ULTRA_MIPI_RAW,
-	{
-	  {RST, Vol_Low, 1},
-	  {AVDD, Vol_2800, 0},
-	  {DVDD, Vol_1200, 0},
-	  {DOVDD, Vol_1800, 1},
-	  {RST, Vol_High, 2},
-	  {SensorMCLK, Vol_High, 2},
-	  },
-	 },
-#endif
 #if defined(S5K5E9_MIPI_RAW)
 	{
 	 SENSOR_DRVNAME_S5K5E9_MIPI_RAW,

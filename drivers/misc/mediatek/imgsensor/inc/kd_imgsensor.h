@@ -259,8 +259,6 @@
 #define S5K4H7YX_SUNNY_SENSOR_INDIA_ID   0x4883
 #define S5K4H7YX_OFILM_FRONT_SENSOR_ID          0x487D
 #define S5K4H7YX_OFILM_ULTRA_SENSOR_ID          0x487E
-#define S5K4H7YX_QTECH_FRONT_SENSOR_ID          0x4880
-#define S5K4H7YX_QTECH_ULTRA_SENSOR_ID          0x4881
 #define S5K4H7YXSUB_SENSOR_ID                   0x487A
 #define S5K3P8SP_SENSOR_ID                      0x3108
 #define S5K2T7SP_SENSOR_ID                      0x2147
@@ -574,8 +572,6 @@
 #define SENSOR_DRVNAME_S5K4H7YX_SUNNY_MIPI_RAW_FACTORY        "s5k4h7yx_sunny_mipi_raw_factory"
 #define SENSOR_DRVNAME_S5K4H7YX_OFILM_FRONT_MIPI_RAW        "s5k4h7yx_ofilm_front_mipi_raw"
 #define SENSOR_DRVNAME_S5K4H7YX_OFILM_ULTRA_MIPI_RAW        "s5k4h7yx_ofilm_ultra_mipi_raw"
-#define SENSOR_DRVNAME_S5K4H7YX_QTECH_FRONT_MIPI_RAW        "s5k4h7yx_qtech_front_mipi_raw"
-#define SENSOR_DRVNAME_S5K4H7YX_QTECH_ULTRA_MIPI_RAW        "s5k4h7yx_qtech_ultra_mipi_raw"
 #define SENSOR_DRVNAME_S5K4E1GA_MIPI_RAW        "s5k4e1ga_mipi_raw"
 #define SENSOR_DRVNAME_S5K4ECGX_MIPI_YUV        "s5k4ecgx_mipi_yuv"
 #define SENSOR_DRVNAME_S5K5CAGX_YUV             "s5k5cagx_yuv"
