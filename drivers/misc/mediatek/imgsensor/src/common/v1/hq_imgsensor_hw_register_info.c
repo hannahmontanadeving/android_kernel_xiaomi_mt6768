@@ -139,37 +139,6 @@ HQ_IMGSENSOR_HQ_REGISTER_INFO cam_str_buff[MAX_IMGSENSOR_NUM][MAX_VENDOR_COUNT] 
 		{"gc5035_qtech_mipi_raw", "qtech_gc5035_ii", HWID_MAIN_CAM_3},
 	}
 };
-
-#elif defined(SHIVA_MSM_CAMERA_HW_INFO) || defined(SHIVA_MSM_CAMERA_HW_INFO)
-#define MAX_SENSOR_NAME_SIZE 30
-#define MAX_HW_REG_NAME_SIZE 20
-#undef  MAX_VENDOR_COUNT
-#define MAX_VENDOR_COUNT 3
-#define MAX_IMGSENSOR_NUM 5
-HQ_IMGSENSOR_HQ_REGISTER_INFO cam_str_buff[MAX_IMGSENSOR_NUM][MAX_VENDOR_COUNT] = {
-	{
-		{"ov13b10_ofilm_mipi_raw", "ofilm_ov13b10_i", HWID_SUB_CAM_2},
-		{"ov13b10_qtech_mipi_raw", "qtech_ov13b10_ii", HWID_SUB_CAM_2},
-		{"s5k3l6_qtech_mipi_raw", "qtech_s5k3l6_ii", HWID_SUB_CAM_2},
-	},
-	{
-		{"s5k4h7yx_ofilm_front_mipi_raw", "ofilm_s5k4h7yx_i", HWID_SUB_CAM},
-		{"ov8856_qtech_front_mipi_raw", "qtech_ov8856_ii", HWID_SUB_CAM},
-	},
-	{
-		{"s5k4h7yx_ofilm_ultra_mipi_raw", "ofilm_s5k4h7yx_i", HWID_MAIN_CAM},
-		{"ov8856_qtech_ultra_mipi_raw", "qtech_ov8856_ii", HWID_MAIN_CAM},
-	},
-	{
-		{"ov2180_ofilm_mipi_raw", "ofilm_ov2180_i", HWID_MAIN_CAM_2},
-		{"ov2180_qtech_mipi_raw", "qtech_ov2180_ii", HWID_MAIN_CAM_2},
-	},
-	{
-		{"gc5035_ofilm_mipi_raw", "ofilm_gc5035_i", HWID_MAIN_CAM_3},
-		{"gc5035_qtech_mipi_raw", "qtech_gc5035_ii", HWID_MAIN_CAM_3},
-	}
-};
-
 #endif
 
 /************************************************************************
