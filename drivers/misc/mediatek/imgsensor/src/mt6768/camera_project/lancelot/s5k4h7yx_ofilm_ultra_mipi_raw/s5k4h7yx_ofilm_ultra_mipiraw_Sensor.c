@@ -962,16 +962,6 @@ static void slim_video_setting(void)
 
 }
 
-static kal_uint16 get_vendor_id(void)
-{
-	kal_uint16 get_byte = 0;
-	char pusendcmd[2] = { (char)(0x01 >> 8), (char)(0x01 & 0xFF) };
-	iReadRegI2C(pusendcmd, 2, (u8 *) &get_byte, 1, 0xA8);
-
-	return get_byte;
-
-}
-
 /*************************************************************************
 * FUNCTION
 *	get_imgsensor_id
@@ -991,38 +981,37 @@ static kal_uint16 get_vendor_id(void)
 static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 {
 	kal_uint8 i = 0;
-	kal_uint8 retry = 2, vendor_id = 0;
-	*sensor_id = 0xFFFFFFFF;
-	/* sensor have two i2c address 0x6c 0x6d & 0x21 0x20, we should detect the module used i2c address */
-	vendor_id = get_vendor_id();
-	LOG_INF("cxc_ofilm_ultra vendor_id 0x%x\n", vendor_id);
+	kal_uint8 retry = 2;
+
+	/* sensor have two i2c address 0x6c 0x6d & 0x21 0x20,*/
+	/*we should detect the module used i2c address */
 	while (imgsensor_info.i2c_addr_table[i] != 0xff) {
 		spin_lock(&imgsensor_drv_lock);
 		imgsensor.i2c_write_id = imgsensor_info.i2c_addr_table[i];
 		spin_unlock(&imgsensor_drv_lock);
 		do {
-			if (0x07 == vendor_id) {
-				*sensor_id = return_sensor_id();
-				LOG_INF
-				    ("cxc_ofilm_ultra sensor id: 0x%x, imgsensor_info.sensor_id 0x%x imgsensor.i2c_write_id: 0x%x\n",
-				     *sensor_id, imgsensor_info.sensor_id,
-				     imgsensor.i2c_write_id);
-				if (*sensor_id == imgsensor_info.sensor_id) {
-					/* return ERROR_NONE; */
-					return ERROR_NONE;
-				}
+			*sensor_id = return_sensor_id();
+			if (*sensor_id == imgsensor_info.sensor_id) {
+				LOG_INF("i2c write id : 0x%x, sensor id : 0x%x\n",
+					imgsensor.i2c_write_id, *sensor_id);
+		pr_debug("i2c write id : 0x%x, sensor id : 0x%x\n",
+				imgsensor.i2c_write_id, *sensor_id);
+				return ERROR_NONE;
 			}
+			LOG_INF("Read sensor id fail, i2c_write_id : 0x%x\n",
+				imgsensor.i2c_write_id);
+		pr_debug("Read sensor id fail, write id : 0x%x, id : 0x%x\n",
+				imgsensor.i2c_write_id, *sensor_id);
 			retry--;
 		} while (retry > 0);
 		i++;
 		retry = 2;
 	}
 	if (*sensor_id != imgsensor_info.sensor_id) {
-
+		/* if Sensor ID is not correct, Must set *sensor_id to 0xFFFFFFFF */
 		*sensor_id = 0xFFFFFFFF;
 		return ERROR_SENSOR_CONNECT_FAIL;
 	}
-
 	return ERROR_NONE;
 }
 

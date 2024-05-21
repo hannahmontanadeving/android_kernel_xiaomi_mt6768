@@ -594,19 +594,6 @@ static kal_uint32 set_test_pattern_mode(kal_bool enable)
     return ERROR_NONE;
 }
 
-static kal_uint16 get_vendor_id(void)
-{
-	kal_uint16 get_byte = 0;
-UINT32 i = 1;
-for (i; i < 15; i++) {
-	char pusendcmd[2] = {(char)(i >> 8), (char)(i & 0xFF) };
-	iReadRegI2C(pusendcmd, 2, (u8 *)&get_byte, 1, 0xA0);
-printk("swl vendor id %d", get_byte);
-}
-	return get_byte;
-
-}
-
 /*************************************************************************
 * FUNCTION
 *    get_imgsensor_id
@@ -626,8 +613,7 @@ printk("swl vendor id %d", get_byte);
 static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 {
     kal_uint8 i = 0;
-    kal_uint8 retry = 3, vendor_id = 0;
-    vendor_id = get_vendor_id();
+    kal_uint8 retry = 3;
 
 
 	while (imgsensor_info.i2c_addr_table[i] != 0xff) {

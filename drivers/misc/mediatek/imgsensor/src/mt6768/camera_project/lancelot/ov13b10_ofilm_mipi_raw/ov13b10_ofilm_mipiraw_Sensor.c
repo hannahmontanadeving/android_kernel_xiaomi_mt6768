@@ -1656,104 +1656,29 @@ static kal_uint32 return_sensor_id(void)
 		(read_cmos_sensor(0x300b) << 8) | read_cmos_sensor(0x300c)));
 }
 
-//#include "../imgsensor_i2c.h"
-//#define OV13B10_I2CBUS    (2)
-
-static kal_uint16 get_vendor_id(void)
-{
-	kal_uint16 get_byte = 0;
-	char pusendcmd[2] = { (char)(0x01 >> 8), (char)(0x01 & 0xFF) };
-	iReadRegI2C(pusendcmd, 2, (u8 *) &get_byte, 1, 0xA2);
-	return get_byte;
-
-}
-
 static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 {
 	kal_uint8 i = 0;
-	kal_uint8 retry = 2, vendor_id = 0;
-#if 0
-	int I2C_bus = 0;
-	int size = 0;
+	kal_uint8 retry = 2;
 
-	I2C_bus = i2c_adapter_id(pgi2c_cfg_legacy->pinst->pi2c_client->adapter);
-	LOG_DBG("OV13B10_I2CBUS = %d, I2C_bus = %d\n", OV13B10_I2CBUS, I2C_bus);
-	if (I2C_bus != OV13B10_I2CBUS) {
-		*sensor_id = 0xFFFFFFFF;
-		LOG_ERR("OV13B10_I2CBUS: %d, I2C_bus = %d, Check Error!\n",
-			OV13B10_I2CBUS, I2C_bus);
-		return ERROR_SENSOR_CONNECT_FAIL;
-	}
-#endif
-
-	vendor_id = get_vendor_id();
 	while (imgsensor_info.i2c_addr_table[i] != 0xff) {
 		spin_lock(&imgsensor_drv_lock);
 		imgsensor.i2c_write_id = imgsensor_info.i2c_addr_table[i];
 		spin_unlock(&imgsensor_drv_lock);
-
-		i++;
-#if 0
-		size =
-		    imgSensorReadEepromData(&sensor_eeprom_data,
-					    ov13b10Checksum);
-		if (size != sensor_eeprom_data.dataLength) {
-			LOG_ERR("get eeprom data failed\n");
-			*sensor_id = 0xFFFFFFFF;
-			if (sensor_eeprom_data.dataBuffer != NULL) {
-				kfree(sensor_eeprom_data.dataBuffer);
-				sensor_eeprom_data.dataBuffer = NULL;
-			}
-			continue;
-		} else {
-			LOG_INF("get eeprom data success\n");
-		}
-#endif
 		do {
-			if (0x07 == vendor_id) {
-				*sensor_id = return_sensor_id();
-				if (*sensor_id == imgsensor_info.sensor_id) {
-					pr_info
-					    ("ov13b10_ofilm i2c write id: 0x%x, sensor id: 0x%x vendor_id: 0x%x\n",
-					     imgsensor.i2c_write_id, *sensor_id,
-					     vendor_id);
-					return ERROR_NONE;
-				} else {
-					pr_err
-					    ("ov13b10_ofilm check id fail i2c write id: 0x%x, sensor id: 0x%x vendor_id: 0x%x\n",
-					     imgsensor.i2c_write_id, *sensor_id,
-					     vendor_id);
-					*sensor_id = 0xFFFFFFFF;
-				}
-				LOG_ERR("i2c write id: 0x%x, sensor id: 0x%x\n",
+			*sensor_id = return_sensor_id();
+			if (*sensor_id == imgsensor_info.sensor_id) {
+				pr_debug("i2c write id: 0x%x, sensor id: 0x%x\n",
 					imgsensor.i2c_write_id, *sensor_id);
-/*#if OTP_OV13B10
-				ov13b10_read_data_from_eeprom(OV13B10_EEPROM_SLAVE_ADD,0x000B,1);
-#if INCLUDE_NO_OTP_OV13B10
-				if ((ov13b10_otp_data.module_id > 0) && (ov13b10_otp_data.module_id < 0xFFFF)) {
-#endif
-					if (ov13b10_otp_data.module_id != OV13B10_OFILM_MODULE_ID) {
-						*sensor_id = 0xFFFFFFFF;
-						return ERROR_SENSOR_CONNECT_FAIL;
-					} else
-						LOG_INF("This is ofilm --->ov13b10 otp data vaild ...");
-#if INCLUDE_NO_OTP_OV13B10
-				} else {
-					LOG_INF("This is ov13b10, but no otp data ...");
-				}
-#endif
-#endif*/
-				//imgSensorSetEepromData(&sensor_eeprom_data);
-				//return ERROR_NONE;
+				return ERROR_NONE;
 			}
-			LOG_ERR("Read sensor id fail:0x%x, id: 0x%x\n",
+			pr_debug("Read sensor id fail, write id: 0x%x, id: 0x%x\n",
 				imgsensor.i2c_write_id, *sensor_id);
 			retry--;
 		} while (retry > 0);
-
+		i++;
 		retry = 1;
 	}
-
 	if (*sensor_id != imgsensor_info.sensor_id) {
 		*sensor_id = 0xFFFFFFFF;
 		return ERROR_SENSOR_CONNECT_FAIL;
