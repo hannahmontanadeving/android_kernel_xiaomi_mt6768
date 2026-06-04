@@ -2248,9 +2248,9 @@ static int smb1351_enable_chip(struct charger_device *chg_dev, bool en)
 static int smb1351_dump_register(struct charger_device *chg_dev)
 {
 	int ret = 0;
-	struct smb1351_charger *chip = dev_get_drvdata(&chg_dev->dev);
+	//struct smb1351_charger *chip = dev_get_drvdata(&chg_dev->dev);
 
-	dump_regs(chip);
+	//dump_regs(chip);
 	return ret;
 }
 
@@ -2778,6 +2778,8 @@ static int smb1351_enable_chg_type_det(struct charger_device *chg_dev, bool en)
 	int i, ret = 0;
 	u8 reg, mask = 0;
 	const int max_wait_cnt = 200;
+
+	en = false;
 
 	pr_info("%s: en = %d\n", __func__, en);
 	/*set smb_susp pin high*/
