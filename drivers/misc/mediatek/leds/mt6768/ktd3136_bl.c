@@ -24,10 +24,12 @@
 struct ktd3137_chip *bkl_chip;
 int ktd_hbm_mode;
 
-#define KTD_DEBUG
+//#define KTD_DEBUG
 
- #ifdef KTD_DEBUG
+#ifdef KTD_DEBUG
 #define LOG_DBG(fmt, args...) printk(KERN_INFO "[ktd]"fmt"\n", ##args)
+#else
+#define LOG_DBG(fmt, args...) ((void)0)
 #endif
 
 int ktd3137_brightness_table_reg4[256] = {0x01, 0x02, 0x04, 0x04, 0x07,
@@ -572,13 +574,13 @@ void ktd3137_brightness_set_workfunc(struct ktd3137_chip *chip, int brightness)
 	} else {
 		if (ktd_hbm_mode == 3) {
 			ktd3137_write_reg(bkl_chip->client, REG_MODE, 0xE1);//27.4mA
-			printk(KERN_INFO "[%s]: ktd_hbm_mode = %d\n", __func__, ktd_hbm_mode);
+			LOG_DBG("[%s]: ktd_hbm_mode = %d\n", __func__, ktd_hbm_mode);
 		} else if (ktd_hbm_mode == 2) {
 			ktd3137_write_reg(bkl_chip->client, REG_MODE, 0xC9);//25mA
-			printk(KERN_INFO "[%s]: ktd_hbm_mode = %d\n", __func__, ktd_hbm_mode);
+			LOG_DBG("[%s]: ktd_hbm_mode = %d\n", __func__, ktd_hbm_mode);
 		} else {
 			ktd3137_write_reg(chip->client, REG_MODE, 0xA9);//21.8mA
-			printk(KERN_INFO "[%s]: ktd_hbm_mode = %d\n", __func__, ktd_hbm_mode);
+			LOG_DBG("[%s]: ktd_hbm_mode = %d\n", __func__, ktd_hbm_mode);
 		}
 	}
 
@@ -649,7 +651,7 @@ int ktd3137_brightness_set(int brightness)
 #ifdef CONFIG_TARGET_PRODUCT_MERLINCOMMON
 	if ((brightness < 5) && (brightness > 2)) {//HQ-61731
 		brightness = 5;
-		printk("%s: lyd_lowest_brightness, brightness = %d", __func__, brightness);
+		LOG_DBG("%s: lyd_lowest_brightness, brightness = %d", __func__, brightness);
 	}
 #endif
 
