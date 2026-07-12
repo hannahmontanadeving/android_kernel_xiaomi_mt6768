@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -20,6 +21,12 @@
 #include <linux/of_irq.h>
 #include <linux/of_address.h>
 #include <linux/of_gpio.h>
+#ifdef CONFIG_SWTP_DRIVER
+#include <linux/input/mt.h>
+#include <linux/input.h>
+#include <linux/cdev.h>
+#include <linux/fs.h>
+#endif
 
 #include <mt-plat/mtk_boot_common.h>
 #include "ccci_debug.h"
@@ -27,6 +34,16 @@
 #include "ccci_modem.h"
 #include "ccci_swtp.h"
 #include "ccci_fsm.h"
+
+#ifdef CONFIG_SWTP_DRIVER
+static int lastkey;
+static struct input_dev *sar_input_dev;
+static unsigned int ant_gpio_number;
+static struct class *swtp_class;
+static dev_t swtp_devno;
+struct device *swtp_dev;
+static int swtp_enalbe;
+#endif
 
 const struct of_device_id swtp_of_match[] = {
 	{ .compatible = SWTP_COMPATIBLE_DEVICE_ID, },
@@ -135,6 +152,53 @@ static void swtp_send_tx_power_state(struct swtp_t *swtp)
 
 }
 
+#ifdef CONFIG_SWTP_DRIVER
+// new add for swtp by zch start
+static void sar_work(struct work_struct *work)
+{
+	struct swtp_t *swtp = container_of(to_delayed_work(work),
+			struct swtp_t, delayed_work_swtp);
+
+	if (swtp_enalbe == 1) {
+		if (swtp->gpio_state[0] == SWTP_EINT_PIN_PLUG_OUT) {
+			if (gpio_get_value(ant_gpio_number) == 0) {
+				printk("[SWTP] KEY_TABLE1\n");
+				if (lastkey != 1) {
+					// tab1
+					lastkey = 1;
+					input_report_key(sar_input_dev, KEY_TABLE1, 1);
+					input_sync(sar_input_dev);
+					input_report_key(sar_input_dev, KEY_TABLE1, 0);
+					input_sync(sar_input_dev);
+				}
+			} else {
+				//tab 2
+				printk("[SWTP] KEY_TABLE2\n");
+				if (lastkey != 2) {
+					lastkey = 2;
+					input_report_key(sar_input_dev, KEY_TABLE2, 1);
+					input_sync(sar_input_dev);
+					input_report_key(sar_input_dev, KEY_TABLE2, 0);
+					input_sync(sar_input_dev);
+				}
+			}
+		} else {
+			// no tab
+			printk("[SWTP] KEY_NONE\n");
+			if (lastkey != 3) {
+				lastkey = 3;
+				input_report_key(sar_input_dev, KEY_NONE, 1);
+				input_sync(sar_input_dev);
+				input_report_key(sar_input_dev, KEY_NONE, 0);
+				input_sync(sar_input_dev);
+			}
+		}
+	}
+	schedule_delayed_work(&swtp->delayed_work_swtp, 5 * HZ);
+}
+// new add for swtp by zch end
+#endif
+
 static irqreturn_t swtp_irq_handler(int irq, void *data)
 {
 	struct swtp_t *swtp = (struct swtp_t *)data;
@@ -147,6 +211,13 @@ static irqreturn_t swtp_irq_handler(int irq, void *data)
 			__func__, ret);
 	} else
 		swtp_send_tx_power_state(swtp);
+
+#ifdef CONFIG_SWTP_DRIVER
+	// new add for swtp by zch
+	printk("[SWTP] recive irq schedule_delayed_work");
+	schedule_delayed_work(&swtp->delayed_work_swtp, 0 * HZ);
+	// end
+#endif
 
 	return IRQ_HANDLED;
 }
@@ -184,6 +255,36 @@ int swtp_md_tx_power_req_hdlr(int md_id, int data)
 	return 0;
 }
 
+#ifdef CONFIG_SWTP_DRIVER
+static ssize_t enable_read(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int ret = 0;
+
+	sprintf(buf, "%d\n", swtp_enalbe);
+	ret = strlen(buf) + 1;
+	printk(" %s my_flag=%d\n", __func__, ret);
+	return ret;
+}
+
+static ssize_t enable_write(struct device *dev, struct device_attribute *attr,
+	const char *buf, size_t size)
+{
+	swtp_enalbe = simple_strtoul(buf, NULL, 10);
+	return size;
+}
+
+static DEVICE_ATTR(enable, 0664, enable_read, enable_write);
+
+static int init_swtp_attr(void)
+{
+	alloc_chrdev_region(&swtp_devno, 0, 1, "swtp");
+	swtp_class = class_create(THIS_MODULE, "swtp");
+	swtp_dev = device_create(swtp_class, NULL, swtp_devno, NULL, "swtp");
+	device_create_file(swtp_dev, &dev_attr_enable);
+	return 0;
+}
+#endif
+
 static void swtp_init_delayed_work(struct work_struct *work)
 {
 	struct swtp_t *swtp = container_of(to_delayed_work(work),
@@ -216,6 +317,29 @@ static void swtp_init_delayed_work(struct work_struct *work)
 	for (i = 0; i < MAX_PIN_NUM; i++) {
 		node = of_find_matching_node(NULL, &swtp_of_match[i]);
 		if (node) {
+#ifdef CONFIG_SWTP_DRIVER
+			// new add for swtp by zch start
+			if (i == 0) {
+				ant_gpio_number = of_get_named_gpio(node,
+					"ant_sw_gpios", 0);
+				if (ant_gpio_number < 0)
+					printk("[SWTP] error of_get_named_gpio error\n");
+
+				//request input device
+				sar_input_dev = input_allocate_device();
+				sar_input_dev->name = "mysar";
+				__set_bit(EV_KEY, sar_input_dev->evbit);
+
+				input_set_capability(sar_input_dev, EV_KEY, KEY_TABLE1);
+				input_set_capability(sar_input_dev, EV_KEY, KEY_TABLE2);
+				input_set_capability(sar_input_dev, EV_KEY, KEY_NONE);
+
+				ret = input_register_device(sar_input_dev);
+				if (ret)
+					printk("[SWTP]input device register fail\n");
+			}
+			// new add for swtp by zch end
+#endif
 			ret = of_property_read_u32_array(node, "debounce",
 				ints, ARRAY_SIZE(ints));
 			if (ret) {
@@ -266,6 +390,11 @@ static void swtp_init_delayed_work(struct work_struct *work)
 	register_ccci_sys_call_back(md_id, MD_SW_MD1_TX_POWER_REQ,
 		swtp_md_tx_power_req_hdlr);
 
+#ifdef CONFIG_SWTP_DRIVER
+	// new add for swtp by zch
+	schedule_delayed_work(&swtp_data[md_id].delayed_work_swtp, 5 * HZ);
+#endif
+
 SWTP_INIT_END:
 	CCCI_BOOTUP_LOG(md_id, SYS, "%s end: ret = %d\n", __func__, ret);
 	CCCI_NORMAL_LOG(md_id, SYS, "%s end: ret = %d\n", __func__, ret);
@@ -284,11 +413,19 @@ int swtp_init(int md_id)
 	/* init woke setting */
 	swtp_data[md_id].md_id = md_id;
 
+#ifdef CONFIG_SWTP_DRIVER
+	init_swtp_attr();
+#endif
+
 	INIT_DELAYED_WORK(&swtp_data[md_id].init_delayed_work,
 		swtp_init_delayed_work);
 	/* tx work setting */
 	INIT_DELAYED_WORK(&swtp_data[md_id].delayed_work,
 		swtp_tx_delayed_work);
+#ifdef CONFIG_SWTP_DRIVER
+	// new add for swtp by zch
+	INIT_DELAYED_WORK(&swtp_data[md_id].delayed_work_swtp, sar_work);
+#endif
 	swtp_data[md_id].tx_power_mode = SWTP_NO_TX_POWER;
 
 	spin_lock_init(&swtp_data[md_id].spinlock);
