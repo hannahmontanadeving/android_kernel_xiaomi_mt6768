@@ -1,3 +1,0 @@
-config SND_SOC_CS35L41
-	tristate "cirrus Semiconductors cs35l34 amplifier"
-	default n
